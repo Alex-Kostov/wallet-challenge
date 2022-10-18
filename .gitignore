@@ -1,0 +1,7 @@
+
+/node_modules
+/dist
+# Non code related notes and documents
+wallet-challenge.pdf
+typescript-notes.ts
+typescript-notes.js
