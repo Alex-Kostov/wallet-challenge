@@ -1,7 +1,9 @@
 
 /node_modules
 /dist
+.env
+
 # Non code related notes and documents
 wallet-challenge.pdf
-typescript-notes.ts
-typescript-notes.js
+typescript-notes.txt
+notes.txt
