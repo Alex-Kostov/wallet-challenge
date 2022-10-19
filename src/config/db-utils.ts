@@ -3,6 +3,7 @@ The database must have a users table, sessions table and transactions. Add any o
 you see fit for the task.
 */
 
+import bcrypt from 'bcrypt';
 import { QueryError, Connection, Field } from 'mysql2';
 import { User } from '../interfaces/db-interfaces';
 
@@ -48,16 +49,21 @@ export function createTables(db: Connection): void {
 }
 
 export function addAdminUser (db: Connection): void {
-	db.query(`SELECT EXISTS (SELECT 1 FROM users);`, (err: QueryError, result: any, fields: Field ): void => {
+	db.query(`SELECT EXISTS (SELECT 1 FROM users);`, async (err: QueryError, result: any, fields: Field ): Promise<void> => {
 		if ( err) {
 			throw err;
 		}
 		if (Object.values(result[0])[0] === 1) {
 			console.log('Admin user has not been added since it already exists');
 		} else {
+
+			// Generate salt and secure a password via bcrypt.
+			const salt: string = await bcrypt.genSalt(8);
+			const hashedPassword: string = await bcrypt.hash('admin', salt);
+
 			const user: User = {
 				username: 'admin',
-				password: 'admin',
+				password: hashedPassword,
 				role: 'admin',
 				balance: 100,
 				user_registered: new Date().toLocaleString()
@@ -74,16 +80,21 @@ export function addAdminUser (db: Connection): void {
 }
 
 export function addCustomerUser (db: Connection): void {
-	db.query(`SELECT EXISTS (SELECT 2 FROM users);`, (err: QueryError, result: any, fields: Field ): void => {
+	db.query(`SELECT EXISTS (SELECT 2 FROM users);`, async (err: QueryError, result: any, fields: Field ): Promise<void> => {
 		if ( err) {
 			throw err;
 		}
 		if (Object.values(result[0])[0] === 1) {
 			console.log('Customer user has not been added since it already exists');
 		} else {
+
+			// Generate salt and secure a password via bcrypt.
+			const salt: string = await bcrypt.genSalt(8);
+			const hashedPassword: string = await bcrypt.hash('john', salt);
+
 			const user: User = {
 				username: 'john',
-				password: 'john',
+				password: hashedPassword,
 				role: 'customer',
 				balance: 50,
 				user_registered: new Date().toLocaleString()
