@@ -1,7 +1,7 @@
 
 import { IncomingMessage, ServerResponse } from 'http';
 import { getPostData } from '../utils';
-import { login } from '../models/auth-model';
+import { login, addNewSession } from '../models/auth-model';
 
 export const loginController = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
 	// Check if req username and password are present in the database
@@ -10,6 +10,11 @@ export const loginController = async (req: IncomingMessage, res: ServerResponse)
 		const body: any = await getPostData(req);
 		if (body.username && body.password) {
 			login(body.username, body.password, (result: any) => {
+				if (result.statusCode === 200) {
+					// Create new row in session table
+					addNewSession(result.userID);
+				}
+
 				res.writeHead(result.statusCode, { "Content-Type": "application/json" });
 				res.end(JSON.stringify(result));
 			});
