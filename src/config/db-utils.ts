@@ -25,7 +25,7 @@ export function createDatabase(db_name: string | undefined, db: Connection): voi
 export function createTables(db: Connection): void {
 	const sql: string = `
 	CREATE TABLE IF NOT EXISTS users(
-		id int  AUTO_INCREMENT,
+		id int AUTO_INCREMENT,
 		username VARCHAR(255),
 		password VARCHAR(255),
 		role VARCHAR(255),
@@ -37,6 +37,13 @@ export function createTables(db: Connection): void {
 		id int AUTO_INCREMENT,
 		type VARCHAR(255),
 		amount DECIMAL(15,2),
+		PRIMARY KEY (id)
+	);
+	CREATE TABLE IF NOT EXISTS sessions(
+		id int AUTO_INCREMENT,
+		user_id int,
+		time_created VARCHAR(255),
+		time_updated VARCHAR(255),
 		PRIMARY KEY (id)
 	);
 	`;
