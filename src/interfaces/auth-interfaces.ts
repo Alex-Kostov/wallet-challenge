@@ -4,3 +4,10 @@ export interface Session {
 	time_created: string,
 	time_updated: string
 }
+
+export interface LogoutResponse {
+	valid?: boolean,
+	sessionID?: number | null,
+	msg?: string,
+	logout? : string
+}

@@ -1,7 +1,7 @@
 
 import { IncomingMessage, ServerResponse } from 'http';
 import { getPostData } from '../utils';
-import { login, addNewSession } from '../models/auth-model';
+import { login, addNewSession, checkForValidSession, deleteSession } from '../models/auth-model';
 
 export const loginController = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
 	// Check if req username and password are present in the database
@@ -27,11 +27,24 @@ export const loginController = async (req: IncomingMessage, res: ServerResponse)
 	}
 }
 
-export const logout = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
+export const logoutController = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
 	try {
-		res.writeHead(200, { "Content-Type": "application/json" });
-		res.end(JSON.stringify('Logout'));
+		// Check if we have valid session, it also deletes expired sessions.
+		checkForValidSession((result: any) => {
+			if (result.valid === true) {
+				try {
+					deleteSession(result.sessionID);
+					result.logout = 'successful';
+				} catch (err) {
+					throw err;
+				}
+				res.writeHead(200, { "Content-Type": "application/json" });
+			} else {
+				res.writeHead(401, { "Content-Type": "application/json" });
+			}
+			res.end(JSON.stringify(result));
+		});
 	} catch (err) {
-		console.log(err);
+		throw (err);
 	}
 }
