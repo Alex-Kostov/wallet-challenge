@@ -1,6 +1,6 @@
 import mysql from 'mysql2';
 import { createDatabase, createTables, addAdminUser, addCustomerUser } from './db-utils';
-import * as dotenv from "dotenv";
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 export const db = mysql.createConnection({

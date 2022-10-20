@@ -3,17 +3,29 @@ import bcrypt from 'bcrypt';
 import { Session, LogoutResponse } from '../interfaces/auth-interfaces';
 import { getTimestampsDiff } from '../utils';
 
+/**
+ * Checks the passed username and password against the database.
+ * The function returns an object using the passed callback.
+ * The return object contains (msg {string}, credentialMatches {boolean}, statusCode {number} and optionality userID).
+ * If the username and password are correct we return status 200, else if the password is incorrect we return 403 and if the user is missing we return 401.
+ * @param username {string} Username
+ * @param password {string} Password
+ * @param callback
+ */
 export const login = (username: string, password: string, callback: any): any => {
 	db.query('SELECT * FROM users WHERE username=?', username, async (err, res: { [index: string]: any }, fields) => {
 		if (err) {
 			throw err;
 		} else {
+			// Check if the query has returned an user.
 			if (res.length !== 0) {
 				const hashedPassword = res[0].password;
 				if (hashedPassword && password) {
+					// Compare the passwords using the bcrypt compare function.
 					const passIsCorrected: boolean = await bcrypt.compare(password, hashedPassword);
 					const userID = res[0].id;
 					if (passIsCorrected && userID) {
+						// User with this username exists and the password matches.
 						return callback(
 							{
 								msg: 'Username and password are correct',
@@ -23,6 +35,7 @@ export const login = (username: string, password: string, callback: any): any =>
 							}
 						);
 					} else {
+						// User exist, however the password is incorrect.
 						return callback(
 							{
 								msg: 'Password is incorrect!',
@@ -33,6 +46,7 @@ export const login = (username: string, password: string, callback: any): any =>
 					}
 				}
 			} else {
+				// If we hit this if this mean there is not user matching the passed username.
 				return callback(
 					{
 						msg: 'User does not exist!',
@@ -45,8 +59,12 @@ export const login = (username: string, password: string, callback: any): any =>
 	});
 }
 
+/**
+ * Add new or update existing session by passed userID.
+ * @param userID {number} ID of the user we would like to add/update session for.
+ */
 export const addNewSession = (userID: number): void => {
-	// Check add or update session for user
+	// Check if we have any sessions for an user with this id.
 	db.query('SELECT * FROM sessions WHERE user_id=?', userID, (err, res: { [index: string]: any }, fields) => {
 		if (err) {
 			throw err;
@@ -58,7 +76,12 @@ export const addNewSession = (userID: number): void => {
 				time_updated: new Date().toLocaleString()
 			}
 
-			// Delete sessions for other users
+			/*
+				Since by challenge requirements we do not pass any parameters for the logout request,
+				we cannot know which user to logout so for now we logout all the users.
+				Can be fixed later.
+			*/
+			// Delete all sessions for users except for the current user.
 			db.query('DELETE FROM sessions WHERE user_id!=?', userID, (error, response, insertedFields) => {
 				if (error) {
 					throw error;
@@ -66,6 +89,7 @@ export const addNewSession = (userID: number): void => {
 				console.log('Sessions for other users have been deleted');
 			});
 
+			// Add new session for the passed user.
 			db.query('INSERT INTO sessions set ?', session, (error, response, insertedFields) => {
 				if (error) {
 					throw error;
@@ -73,13 +97,14 @@ export const addNewSession = (userID: number): void => {
 				console.log('New Session created successfully');
 			});
 		} else {
-			// Update current Session
+			// If we are in this else this means that we have session for user with this id.
 			const { id, user_id, time_created, time_updated }: Session = res[0];
-			const timeUpdated = new Date(time_updated);
-			const currentTime = new Date();
+			const timeUpdated: Date = new Date(time_updated);
+			const currentTime: Date = new Date();
 
-			// Check if current timestamp is higher that last updated date
+			// Check if current timestamp is higher that last updated date.
 			if (currentTime.getTime() > timeUpdated.getTime()) {
+				// Update the current Session.
 				db.query('UPDATE sessions SET time_updated=? WHERE sessions.id=?', [currentTime.toLocaleString(), id], (error, response, insertedFields) => {
 					if (error) {
 						throw error;
@@ -91,7 +116,13 @@ export const addNewSession = (userID: number): void => {
 	});
 }
 
+/**
+ * Check for valid sessions.
+ * We use this function to see if there are any logged in users.
+ * @param callback
+ */
 export const checkForValidSession = (callback: any) => {
+	// Select all sessions
 	db.query('SELECT * FROM sessions', (err, res: { [index: string]: any }, fields) => {
 		if (err) {
 			throw err;
@@ -99,15 +130,16 @@ export const checkForValidSession = (callback: any) => {
 		const response: LogoutResponse = {};
 		if (res.length > 0) {
 			const { id, user_id, time_created, time_updated }: Session = res[0];
+
+			// Get the difference between curren time and sessions last updated time.
 			const diff = getTimestampsDiff(time_updated);
 			if (Number(diff) > -1.00) {
-				// Session is valid
+				// Session is valid.
 				response.valid = true;
 				response.sessionID = id;
 				response.msg = 'Session is valid';
 			} else {
-				// Session is expired.
-				// Delete Session
+				// Session is expired, delete session.
 				deleteSession(Number(id));
 				response.valid = false;
 				response.sessionID = id;
@@ -116,12 +148,16 @@ export const checkForValidSession = (callback: any) => {
 		} else {
 			response.valid = false;
 			response.sessionID = null;
-			response.msg = 'You are not authorized to access this endpoint! Please try to first login.';
+			response.msg = 'You are not authorized to access this endpoint! Please login first.';
 		}
 		return callback(response);
 	});
 }
 
+/**
+ * Deletes session by passed session ID.
+ * @param sessionID {number} session id
+ */
 export const deleteSession = (sessionID: number): void => {
 	db.query('DELETE FROM sessions where id=?', sessionID, (err, res, fields) => {
 		if (err) {
