@@ -1,5 +1,5 @@
 import mysql from 'mysql2';
-import { createDatabase, createTables, addAdminUser, addCustomerUser } from './db-utils';
+import { createDatabase, createTables, createRoles, addAdminUser, addCustomerUser } from './db-utils';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -13,6 +13,7 @@ export const db = mysql.createConnection({
 try {
 	createDatabase(process.env.DB_DATABASE, db);
 	createTables(db);
+	createRoles(db);
 	addAdminUser(db);
 	addCustomerUser(db);
 } catch (err) {

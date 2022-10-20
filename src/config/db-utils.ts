@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { QueryError, Connection, Field } from 'mysql2';
-import { User } from '../interfaces/db-interfaces';
+import { User, Role } from '../interfaces/db-interfaces';
 
 /**
  * Creates DATABASE if one does not exist.
@@ -25,23 +25,31 @@ export function createDatabase(db_name: string | undefined, db: Connection): voi
 export function createTables(db: Connection): void {
 	const sql: string = `
 	CREATE TABLE IF NOT EXISTS users(
-		id int AUTO_INCREMENT,
+		id INT AUTO_INCREMENT,
 		username VARCHAR(255),
 		password VARCHAR(255),
+		role_id INT,
 		role VARCHAR(255),
 		balance DECIMAL(15, 2),
 		user_registered VARCHAR(255),
 		PRIMARY KEY (id)
 	);
+	CREATE TABLE IF NOT EXISTS roles(
+		id INT AUTO_INCREMENT,
+		role_name VARCHAR(255),
+		read_capability INT,
+		write_capability INT,
+		PRIMARY KEY (id)
+	);
 	CREATE TABLE IF NOT EXISTS transactions(
-		id int AUTO_INCREMENT,
+		id INT AUTO_INCREMENT,
 		type VARCHAR(255),
 		amount DECIMAL(15,2),
 		PRIMARY KEY (id)
 	);
 	CREATE TABLE IF NOT EXISTS sessions(
-		id int AUTO_INCREMENT,
-		user_id int,
+		id INT AUTO_INCREMENT,
+		user_id INT,
 		time_created VARCHAR(255),
 		time_updated VARCHAR(255),
 		PRIMARY KEY (id)
@@ -52,6 +60,61 @@ export function createTables(db: Connection): void {
 			throw err;
 		}
 		console.log('Tables Ready');
+	});
+}
+
+/**
+ * Ads Admin and Customer user roles if they do not exists.
+ * Admin role can access all the endpoints
+ * Customer role can only check their balance
+ * @param db Database connection.
+ */
+export function createRoles(db: Connection): void {
+	db.query('SELECT EXISTS (SELECT 1 FROM roles);', (err: QueryError, result: any, fields: Field): void => {
+		if (err) {
+			throw err;
+		}
+		if (Object.values(result[0])[0] === 1) {
+			// Roles are already created.
+			console.log('User Roles were not added since they already exists')
+		} else {
+			// Create new Roles.
+
+			/**
+			 * Admin role will have the following permissions:
+			 * balance - check balance
+			 * list - list the last X transactions
+			 * deposit - add money to their account
+			 * withdraw - withdraw money from their account
+			 */
+			const adminRole: Role = {
+				role_name: 'admin',
+				read_capability: 1,
+				write_capability: 1
+			}
+
+			/**
+			 * Customer Role will have the following permissions:
+			 * balance - check their balance
+			 * customer WILL NOT BE able to add or withdraw funds from their account.
+			 */
+			const customerRole: Role = {
+				role_name: 'customer',
+				read_capability: 1,
+				write_capability: 0
+			}
+
+			// Insert the 2 new roles into the database.
+			db.query(
+				'INSERT INTO roles (role_name, read_capability, write_capability) VALUES ?',
+				[[adminRole, customerRole].map(item => [item.role_name, item.read_capability, item.write_capability])],
+				(err, result, fields) => {
+					if (err) {
+						throw err;
+					}
+					console.log('Admin and Customer user roles have been added.');
+				});
+		}
 	});
 }
 
@@ -77,6 +140,7 @@ export function addAdminUser(db: Connection): void {
 			const user: User = {
 				username: 'admin',
 				password: hashedPassword,
+				role_id: 1,
 				role: 'admin',
 				balance: 100,
 				user_registered: new Date().toLocaleString()
@@ -114,6 +178,7 @@ export function addCustomerUser(db: Connection): void {
 			const user: User = {
 				username: 'john',
 				password: hashedPassword,
+				role_id: 2,
 				role: 'customer',
 				balance: 50,
 				user_registered: new Date().toLocaleString()
