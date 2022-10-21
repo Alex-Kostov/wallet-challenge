@@ -2,6 +2,7 @@ import http from 'http';
 import * as dotenv from 'dotenv';
 dotenv.config();
 import { loginController, logoutController } from './controllers/auth-controller';
+import { balanceController } from './controllers/balance-controller';
 
 const PORT = process.env.PORT || 4000;
 
@@ -9,33 +10,29 @@ const server = http.createServer(async (req, res) => {
 	// Set API endpoints
 	const { method, url } = req;
 	if (url === '/auth/login' && method === 'POST') {
+		/**
+		 * Login the user if the credentials are correct and create new session.
+		 */
 		loginController(req, res);
 	} else if (url === '/auth/logout' && method === 'POST') {
+		/**
+		 * Logout the user by removing his session.
+		 */
 		logoutController(req, res);
 	} else if (url === '/users/balance' && method === 'GET') {
-		//response headers
-		res.writeHead(200, { 'Content-Type': 'application/json' });
-		//set the response
-		res.write('Hi there, This is a Vanilla Node.js API');
-		//end the response
-		res.end();
+		/**
+		 * Retrieves the user’s current balance.
+		 * The user must have a specific permission to read their balance and request it.
+		 */
+		balanceController(req, res);
 	} else if (url === '/wallet/list' && method === 'GET') {
-		//response headers
-		res.writeHead(200, { 'Content-Type': 'application/json' });
-		//set the response
-		res.write('Hi there, This is a Vanilla Node.js API');
-		//end the response
-		res.end();
+
 	} else if (url === '/wallet/withdraw' && method === 'GET') {
-		//response headers
-		res.writeHead(200, { 'Content-Type': 'application/json' });
-		//set the response
-		res.write('Hi there, This is a Vanilla Node.js API');
-		//end the response
-		res.end();
+
+	} else if (url === '/wallet/deposit' && method === 'GET') {
+
 	} else {
-		res.writeHead(404, { 'Content-Type': 'application/json' });
-		res.end(JSON.stringify({ message: 'Route not found' }));
+
 	}
 });
 
