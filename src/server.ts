@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import { loginController, logoutController } from './controllers/auth-controller';
 import { balanceController } from './controllers/balance-controller';
-import { depositController } from './controllers/wallet-controller';
+import { depositController, withdrawController } from './controllers/wallet-controller';
 
 const PORT = process.env.PORT || 4000;
 
@@ -34,11 +34,12 @@ const server = http.createServer(async (req, res) => {
 		 * The user needs permission to access this endpoint.
 		 */
 		depositController(req, res);
-	} else if (url === '/wallet/withdraw' && method === 'GET') {
+	} else if (url === '/wallet/withdraw' && method === 'POST') {
 		/**
 		 * Withdraw money from the user’s wallet (balance).
 		 * The user needs permission to access this endpoint.
 		 */
+		withdrawController(req, res);
 	} else {
 
 

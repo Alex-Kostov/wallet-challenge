@@ -32,3 +32,20 @@ export const deposit = async (userID: number, amount: number) => {
 		});
 	});
 }
+
+/**
+ * Withdraw money from user by id.
+ * @param userID id of the user we would like to withdraw money to.
+ * @param amount amount of money we want to withdraw.
+ * @returns Returns a promise of withdraw result.
+ */
+export const withdraw = async (userID: number, amount: number) => {
+	return new Promise((resolve, reject) => {
+		db.query('UPDATE users SET balance=(balance - ?) WHERE id=?', [amount, userID], (err, result, fields) => {
+			if (err) {
+				reject(err);
+			}
+			resolve(result);
+		});
+	});
+}
