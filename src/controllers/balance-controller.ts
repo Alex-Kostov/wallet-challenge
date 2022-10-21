@@ -1,6 +1,6 @@
 
 import { IncomingMessage, ServerResponse } from 'http';
-import { checkForValidSession } from '../models/auth-model';
+import { checkForValidSession, updateSession } from '../models/auth-model';
 import { listUserPermissions } from '../models/permissions-model';
 import { Response } from '../interfaces/reusable-interfaces';
 import { getBalance } from '../models/wallet-operations-model';
@@ -26,6 +26,10 @@ export const balanceController = async (req: IncomingMessage, res: ServerRespons
 				// We have the correct permissions we can display the balance.
 				const balance = await getBalance(userID);
 				balanceResponse.balance = balance;
+
+				// Update the session
+				updateSession(userID);
+
 				res.writeHead(200, { "Content-Type": "application/json" });
 			} else {
 				// Currently all the users have read permissions so this case wont be hitted.

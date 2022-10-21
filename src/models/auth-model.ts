@@ -117,6 +117,14 @@ export const addNewSession = (userID: number): void => {
 }
 
 /**
+ * Calls addNewSession, however the naming is more appropriate.
+ * @param userID id of the user.
+ */
+export const updateSession = async (userID: number): Promise<void> => {
+ 	addNewSession(userID);
+}
+
+/**
  * Check for valid sessions.
  * We use this function to see if there are any logged in users.
  */

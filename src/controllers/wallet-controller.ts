@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { Response } from '../interfaces/reusable-interfaces';
-import { checkForValidSession } from '../models/auth-model';
+import { checkForValidSession, updateSession } from '../models/auth-model';
 import { listUserPermissions } from '../models/permissions-model';
 import { getPostData } from '../utils';
 import { deposit, getBalance, withdraw, newTransaction, fetchTransactions } from '../models/wallet-operations-model';
@@ -45,6 +45,10 @@ export const depositController = async (req: IncomingMessage, res: ServerRespons
 					// Return new balance as response.
 					const newBalance = await getBalance(userID);
 					depositResponse.msg = 'Deposit successful. New balance is ' + newBalance;
+
+					// Update the session
+					updateSession(userID);
+
 					res.writeHead(200, { "Content-Type": "application/json" });
 				} else {
 					depositResponse.msg = 'Deposit {amount} must be valid number, or it must not be zero.';
@@ -105,6 +109,10 @@ export const withdrawController = async (req: IncomingMessage, res: ServerRespon
 						await newTransaction(userID, withdrawAmount, 'withdraw');
 
 						withdrawResponse.msg = 'Withdraw successful. New balance is ' + (currentBalance - withdrawAmount);
+
+						// Update the session
+						updateSession(userID);
+
 						res.writeHead(200, { "Content-Type": "application/json" });
 					} else {
 						withdrawResponse.msg = 'Withdraw {amount} must be valid number, or it must not be zero.';
@@ -151,6 +159,10 @@ export const transactionsController = async (req: IncomingMessage, res: ServerRe
 				const transactions = await fetchTransactions(userID, limit);
 
 				transactionResponse.transactions = transactions;
+
+				// Update the session
+				updateSession(userID);
+
 				res.writeHead(200, { "Content-Type": "application/json" });
 			} else {
 				// Currently all the users have read permissions so this case wont be hitted.
