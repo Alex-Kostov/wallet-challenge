@@ -15,15 +15,18 @@ export const loginController = async (req: IncomingMessage, res: ServerResponse)
 		const body: any = await getPostData(req);
 		if (body.username && body.password) {
 			// If username and password are passed we try to login.
-			login(body.username, body.password, (result: any) => {
-				// If status code is 200 then we need to add new session for the user.
-				if (result.statusCode === 200) {
-					// Create new row in session table
-					addNewSession(result.userID);
-				}
-				res.writeHead(result.statusCode, { "Content-Type": "application/json" });
-				res.end(JSON.stringify(result));
-			});
+			const loginResult = await login(body.username, body.password);
+
+			if (loginResult.statusCode === 200) {
+				// Make sure userId is number
+				const userID = typeof loginResult.userID !== 'number' ? Number(loginResult.userID) : loginResult.userID;
+
+				// Create new row in session table
+				addNewSession(userID);
+			}
+
+			res.writeHead(loginResult.statusCode, { "Content-Type": "application/json" });
+			res.end(JSON.stringify(loginResult));
 		} else {
 			// if we hit this if then in the request body username or password is missing.
 			res.writeHead(404, { "Content-Type": "application/json" });
@@ -44,22 +47,20 @@ export const loginController = async (req: IncomingMessage, res: ServerResponse)
 export const logoutController = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
 	try {
 		// Check if we have valid session
-		checkForValidSession((result: any) => {
-			if (result.valid === true) {
-				try {
-					// If we have valid session we remove it, this way we logout the user.
-					deleteSession(result.sessionID);
-					result.logout = 'successful';
-				} catch (err) {
-					throw err;
-				}
-				res.writeHead(200, { "Content-Type": "application/json" });
-			} else {
-				// If we do not have valid session this mean that we are unauthorized so we return 401.
-				res.writeHead(401, { "Content-Type": "application/json" });
-			}
-			res.end(JSON.stringify(result));
-		});
+		const validSession = await checkForValidSession();
+
+		if (validSession.valid === true) {
+			// Make sure sessionID is number
+			const sessionID = typeof validSession.sessionID !== 'number' ? Number(validSession.sessionID) : validSession.sessionID;
+
+			// If we have valid session we remove it, this way we logout the user.
+			deleteSession(sessionID);
+			validSession.logout = 'successful';
+			res.writeHead(200, { "Content-Type": "application/json" });
+		} else {
+			res.writeHead(401, { "Content-Type": "application/json" });
+		}
+		res.end(JSON.stringify(validSession));
 	} catch (err) {
 		throw (err);
 	}
