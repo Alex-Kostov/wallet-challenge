@@ -75,3 +75,20 @@ export const newTransaction = async (userID: number, transactionAmount: number, 
 		});
 	});
 }
+
+/**
+ * Fetches a specified number of transactions.
+ * @param userID is of the user
+ * @param limit the number of transactions we want to fetch
+ * @returns Promise with the transactions
+ */
+export const fetchTransactions = async (userID: number, limit: number): Promise<any> => {
+	return new Promise((resolve, reject) => {
+		db.query('SELECT * FROM transactions WHERE user_id=? ORDER BY id ASC LIMIT ?', [userID, limit], (err, result, fields) => {
+			if (err) {
+				reject(err);
+			}
+			resolve(result);
+		});
+	});
+}

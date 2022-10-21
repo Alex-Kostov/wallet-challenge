@@ -3,7 +3,7 @@ import { Response } from '../interfaces/reusable-interfaces';
 import { checkForValidSession } from '../models/auth-model';
 import { listUserPermissions } from '../models/permissions-model';
 import { getPostData } from '../utils';
-import { deposit, getBalance, withdraw, newTransaction } from '../models/wallet-operations-model';
+import { deposit, getBalance, withdraw, newTransaction, fetchTransactions } from '../models/wallet-operations-model';
 
 
 /**
@@ -128,5 +128,42 @@ export const withdrawController = async (req: IncomingMessage, res: ServerRespon
 		res.end(JSON.stringify(withdrawResponse));
 	} catch (err) {
 		throw err
+	}
+}
+
+/**
+ * Handles the rest API for listing the latest transactions.
+ * @param req Request object
+ * @param res Response object
+ * @param limit the number of transactions we want to fetch
+ */
+export const transactionsController = async (req: IncomingMessage, res: ServerResponse, limit: number): Promise<void> => {
+	try {
+		// Check if we have a valid session
+		const validSession = await checkForValidSession();
+		const transactionResponse: Response = {};
+		if (validSession.valid === true) {
+			// Session is valid
+			const userID = typeof validSession.userID !== 'number' ? Number(validSession.userID) : validSession.userID;
+			const permissions = await listUserPermissions(userID);
+
+			if (permissions.writeCap === true) {
+				const transactions = await fetchTransactions(userID, limit);
+
+				transactionResponse.transactions = transactions;
+				res.writeHead(200, { "Content-Type": "application/json" });
+			} else {
+				// Currently all the users have read permissions so this case wont be hitted.
+				res.writeHead(403, { "Content-Type": "application/json" });
+				transactionResponse.msg = 'Your request has been denied, you do not have the correct permissions to view transactions. Please contact administrator for more info.';
+			}
+		} else {
+			// Session expired.
+			res.writeHead(401, { "Content-Type": "application/json" });
+			transactionResponse.msg = 'Unauthorized, user is not logged in or session is expired!'
+		}
+		res.end(JSON.stringify(transactionResponse));
+	} catch (err) {
+		throw err;
 	}
 }

@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 import { loginController, logoutController } from './controllers/auth-controller';
 import { balanceController } from './controllers/balance-controller';
-import { depositController, withdrawController } from './controllers/wallet-controller';
+import { depositController, withdrawController, transactionsController } from './controllers/wallet-controller';
 
 const PORT = process.env.PORT || 4000;
 
@@ -27,7 +27,21 @@ const server = http.createServer(async (req, res) => {
 		 */
 		balanceController(req, res);
 	} else if (url === '/wallet/list' && method === 'GET') {
+		/**
+		 * Retrieves the user's latest 10 transactions if any.
+		 */
+		transactionsController(req, res, 10);
+	} else if (url?.match(/\/wallet\/list\/\w+/) && method === 'GET') {
+		/**
+		 * Retrieves passed number of user transactions.
+		 */
 
+		// Validate the params.
+		let limit: number = Number(url.split('/')[3]);
+		if (isNaN(limit)) {
+			limit = 10;
+		}
+		transactionsController(req, res, limit);
 	} else if (url === '/wallet/deposit' && method === 'POST') {
 		/**
 		 * Deposit money to the user’s wallet (balance).
@@ -41,7 +55,6 @@ const server = http.createServer(async (req, res) => {
 		 */
 		withdrawController(req, res);
 	} else {
-
 
 	}
 });

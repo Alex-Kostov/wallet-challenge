@@ -1,4 +1,5 @@
 export interface Response {
 	balance? : number,
-	msg?: string
+	msg?: string,
+	transactions?: {}[]
 }
