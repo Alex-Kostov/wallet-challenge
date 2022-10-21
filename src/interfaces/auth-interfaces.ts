@@ -17,3 +17,8 @@ export interface Capabilities {
 	readCap: boolean,
 	writeCap: boolean
 }
+
+export interface BalanceResponse {
+	msg?: string,
+	balance?: number,
+}
