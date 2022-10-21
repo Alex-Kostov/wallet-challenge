@@ -39,6 +39,7 @@ npm run build
 npm run start
 ```
 *npm run build* - This command will compile the TypeScript files by running tsc
+
 *npm run start* - This command will first create new wallet_challange database, will create all the needed tables and will add 2 user roles (Admin and Customer).
 
 -  Navigate to `http://localhost:3000/`
