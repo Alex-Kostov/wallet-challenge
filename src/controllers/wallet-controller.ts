@@ -84,30 +84,35 @@ export const withdrawController = async (req: IncomingMessage, res: ServerRespon
 			const userID = typeof validSession.userID !== 'number' ? Number(validSession.userID) : validSession.userID;
 			const permissions = await listUserPermissions(userID);
 
-
 			if (permissions.writeCap === true) {
 				// Get the post data.
 				const data = await getPostData(req);
 				let withdrawAmount = Number(data.amount);
 
-				// Validate the passed data.
-				if (withdrawAmount < 0) {
-					withdrawAmount = Math.abs(withdrawAmount);
-				}
+				const currentBalance = await getBalance(userID);
 
-				if (withdrawAmount !== 0) {
-					// Withdraw the money
-					await withdraw(userID, withdrawAmount);
+				if (currentBalance >= withdrawAmount) {
+					// Validate the passed data.
+					if (withdrawAmount < 0) {
+						withdrawAmount = Math.abs(withdrawAmount);
+					}
 
-					// Create new transaction
-					await newTransaction(userID, withdrawAmount, 'withdraw');
+					if (withdrawAmount !== 0) {
+						// Withdraw the money
+						await withdraw(userID, withdrawAmount);
 
-					// Return new balance as response.
-					const newBalance = await getBalance(userID);
-					withdrawResponse.msg = 'Withdraw successful. New balance is ' + newBalance;
-					res.writeHead(200, { "Content-Type": "application/json" });
+						// Create new transaction
+						await newTransaction(userID, withdrawAmount, 'withdraw');
+
+						withdrawResponse.msg = 'Withdraw successful. New balance is ' + (currentBalance - withdrawAmount);
+						res.writeHead(200, { "Content-Type": "application/json" });
+					} else {
+						withdrawResponse.msg = 'Withdraw {amount} must be valid number, or it must not be zero.';
+						res.writeHead(400, { "Content-Type": "application/json" });
+					}
+
 				} else {
-					withdrawResponse.msg = 'Withdraw {amount} must be valid number, or it must not be zero.';
+					withdrawResponse.msg = 'Insufficient Funds';
 					res.writeHead(400, { "Content-Type": "application/json" });
 				}
 			} else {
