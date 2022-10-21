@@ -2,7 +2,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { checkForValidSession } from '../models/auth-model';
 import { listUserPermissions } from '../models/permissions-model';
-import { BalanceResponse } from '../interfaces/auth-interfaces';
+import { Response } from '../interfaces/reusable-interfaces';
 import { getBalance } from '../models/wallet-operations-model';
 
 /**
@@ -15,7 +15,7 @@ export const balanceController = async (req: IncomingMessage, res: ServerRespons
 	try {
 		// Check if we have a valid session
 		const validSession = await checkForValidSession();
-		const balanceResponse: BalanceResponse = {};
+		const balanceResponse: Response = {};
 		if (validSession.valid === true) {
 			// Session is valid
 			// Make sure userId is number

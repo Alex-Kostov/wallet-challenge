@@ -5,7 +5,7 @@ import { IncomingMessage } from 'http';
  * @param req The request object
  * @returns The functions returns Promise with the body of the passed request parsed to JSON.
  */
-export const getPostData = (req: IncomingMessage) => {
+export const getPostData = (req: IncomingMessage): Promise< { [key: string]: any} > => {
 	return new Promise((resolve, reject) => {
 		try {
 			let body: string = ''
