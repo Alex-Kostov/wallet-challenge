@@ -8,6 +8,12 @@ export interface Session {
 export interface LogoutResponse {
 	valid?: boolean,
 	sessionID?: number | null,
+	userID?: number | null,
 	msg?: string,
 	logout? : string
+}
+
+export interface Capabilities {
+	readCap: boolean,
+	writeCap: boolean
 }
