@@ -5,7 +5,7 @@ import { IncomingMessage } from 'http';
  * @param req The request object
  * @returns The functions returns Promise with the body of the passed request parsed to JSON.
  */
-export const getPostData = (req: IncomingMessage): Promise< { [key: string]: any} > => {
+export const getPostData = (req: IncomingMessage): Promise<{ [key: string]: any }> => {
 	return new Promise((resolve, reject) => {
 		try {
 			let body: string = ''
@@ -36,6 +36,7 @@ export const getTimestampsDiff = (lastUpdatedTime: string) => {
 	return diff.toFixed(2);
 }
 
+// Help information for the /help endpoint.
 export const help = {
 	info: 'The REST API endpoints are as follows:',
 	"/auth/login": 'A POST request where "username" and "password" must be provided',
