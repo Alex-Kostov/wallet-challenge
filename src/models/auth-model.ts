@@ -5,57 +5,57 @@ import { getTimestampsDiff } from '../utils';
 
 /**
  * Checks the passed username and password against the database.
- * The function returns an object using the passed callback.
  * The return object contains (msg {string}, credentialMatches {boolean}, statusCode {number} and optionality userID).
  * If the username and password are correct we return status 200, else if the password is incorrect we return 403 and if the user is missing we return 401.
  * @param username {string} Username
  * @param password {string} Password
- * @param callback
  */
-export const login = (username: string, password: string, callback: any): any => {
-	db.query('SELECT * FROM users WHERE username=?', username, async (err, res: { [index: string]: any }, fields) => {
-		if (err) {
-			throw err;
-		} else {
-			// Check if the query has returned an user.
-			if (res.length !== 0) {
-				const hashedPassword = res[0].password;
-				if (hashedPassword && password) {
-					// Compare the passwords using the bcrypt compare function.
-					const passIsCorrected: boolean = await bcrypt.compare(password, hashedPassword);
-					const userID = res[0].id;
-					if (passIsCorrected && userID) {
-						// User with this username exists and the password matches.
-						return callback(
-							{
-								msg: 'Username and password are correct',
-								credentialMatches: true,
-								statusCode: 200,
-								userID
-							}
-						);
-					} else {
-						// User exist, however the password is incorrect.
-						return callback(
-							{
-								msg: 'Password is incorrect!',
-								credentialMatches: false,
-								statusCode: 403,
-							}
-						);
-					}
-				}
+export const login = (username: string, password: string): Promise<{ msg: string, credentialMatches: boolean, statusCode: number, userID?: number }> => {
+	return new Promise((resolve, reject) => {
+		db.query('SELECT * FROM users WHERE username=?', username, async (err, res: { [index: string]: any }, fields) => {
+			if (err) {
+				reject(err);
 			} else {
-				// If we hit this if this mean there is not user matching the passed username.
-				return callback(
-					{
-						msg: 'User does not exist!',
-						credentialMatches: false,
-						statusCode: 401
+				// Check if the query has returned an user.
+				if (res.length !== 0) {
+					const hashedPassword = res[0].password;
+					if (hashedPassword && password) {
+						// Compare the passwords using the bcrypt compare function.
+						const passIsCorrected: boolean = await bcrypt.compare(password, hashedPassword);
+						const userID = res[0].id;
+						if (passIsCorrected && userID) {
+							// User with this username exists and the password matches.
+							resolve(
+								{
+									msg: 'Username and password are correct',
+									credentialMatches: true,
+									statusCode: 200,
+									userID
+								}
+							);
+						} else {
+							// User exist, however the password is incorrect.
+							resolve(
+								{
+									msg: 'Password is incorrect!',
+									credentialMatches: false,
+									statusCode: 403,
+								}
+							);
+						}
 					}
-				);
+				} else {
+					// If we hit this if this mean there is not user matching the passed username.
+					resolve(
+						{
+							msg: 'User does not exist!',
+							credentialMatches: false,
+							statusCode: 401
+						}
+					);
+				}
 			}
-		}
+		});
 	});
 }
 
@@ -119,38 +119,40 @@ export const addNewSession = (userID: number): void => {
 /**
  * Check for valid sessions.
  * We use this function to see if there are any logged in users.
- * @param callback
  */
-export const checkForValidSession = (callback: any) => {
-	// Select all sessions
-	db.query('SELECT * FROM sessions', (err, res: { [index: string]: any }, fields) => {
-		if (err) {
-			throw err;
-		}
-		const response: LogoutResponse = {};
-		if (res.length > 0) {
-			const { id, user_id, time_created, time_updated }: Session = res[0];
-
-			// Get the difference between curren time and sessions last updated time.
-			const diff = getTimestampsDiff(time_updated);
-			if (Number(diff) > -1.00) {
-				// Session is valid.
-				response.valid = true;
-				response.sessionID = id;
-				response.msg = 'Session is valid';
-			} else {
-				// Session is expired, delete session.
-				deleteSession(Number(id));
-				response.valid = false;
-				response.sessionID = id;
-				response.msg = 'Session is expired';
+export const checkForValidSession = (): Promise<LogoutResponse> => {
+	return new Promise((resolve, reject) => {
+		// Select all sessions
+		db.query('SELECT * FROM sessions', (err, res: { [index: string]: any }, fields) => {
+			if (err) {
+				reject(err);
 			}
-		} else {
-			response.valid = false;
-			response.sessionID = null;
-			response.msg = 'You are not authorized to access this endpoint! Please login first.';
-		}
-		return callback(response);
+			const response: LogoutResponse = {};
+			if (res.length > 0) {
+				const { id, user_id, time_created, time_updated }: Session = res[0];
+
+				// Get the difference between curren time and sessions last updated time.
+				const diff = getTimestampsDiff(time_updated);
+				if (Number(diff) > -1.00) {
+					// Session is valid.
+					response.valid = true;
+					response.sessionID = id;
+					response.userID = user_id;
+					response.msg = 'Session is valid';
+				} else {
+					// Session is expired, delete session.
+					deleteSession(Number(id));
+					response.valid = false;
+					response.sessionID = id;
+					response.msg = 'Session is expired';
+				}
+			} else {
+				response.valid = false;
+				response.sessionID = null;
+				response.msg = 'You are not authorized to access this endpoint! Please login first.';
+			}
+			resolve(response);
+		});
 	});
 }
 
