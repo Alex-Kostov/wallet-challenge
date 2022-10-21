@@ -35,3 +35,14 @@ export const getTimestampsDiff = (lastUpdatedTime: string) => {
 	diff /= (60 * 60);
 	return diff.toFixed(2);
 }
+
+export const help = {
+	info: 'The REST API endpoints are as follows:',
+	"/auth/login": 'A POST request where "username" and "password" must be provided',
+	"/auth/logout": 'A POST no parameters are passed, it logout the user and remove the user session.',
+	"/users/balance": 'A GET request which does not need any parameters, it will fetch the balance of the current logged in user if he has permissions to access it. Currently both admin and customer can view their balance.',
+	"/wallet/list": 'A GET request which fetch the last 10 transactions. If there are less than 10 transactions it fetches all of them. Currently only admin has access to this since this endpoint.',
+	"/wallet/list/{x}": 'A GET request which fetch the last X transactions. If there are less than X transactions it fetches all of them. Currently only admin has access to this since this endpoint.',
+	"/wallet/deposit": 'A POST request which expects to receive positive "amount" passed. Currently only admin has access to this since this endpoint.',
+	"/wallet/withdraw": 'A POST request which expects to receive positive "amount" passed. Currently only admin has access to this since this endpoint.'
+}

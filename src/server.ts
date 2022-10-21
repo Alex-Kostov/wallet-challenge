@@ -4,13 +4,20 @@ dotenv.config();
 import { loginController, logoutController } from './controllers/auth-controller';
 import { balanceController } from './controllers/balance-controller';
 import { depositController, withdrawController, transactionsController } from './controllers/wallet-controller';
+import { help } from './utils';
 
 const PORT = process.env.PORT || 4000;
 
 const server = http.createServer(async (req, res) => {
 	// Set API endpoints
 	const { method, url } = req;
-	if (url === '/auth/login' && method === 'POST') {
+	if ((url === '/' || url === '/help') && method === 'GET') {
+		/**
+		 * Help endpoint in case info is needed.
+		 */
+		res.writeHead(200, { "Content-Type": "application/json" });
+		res.end(JSON.stringify(help, null, "\t"));
+	} else if (url === '/auth/login' && method === 'POST') {
 		/**
 		 * Login the user if the credentials are correct and create new session.
 		 */
@@ -55,7 +62,8 @@ const server = http.createServer(async (req, res) => {
 		 */
 		withdrawController(req, res);
 	} else {
-
+		res.writeHead(404, { "Content-Type": "application/json" });
+		res.end(JSON.stringify('Something went wrong. Try accessing / or /help for more information.'));
 	}
 });
 
