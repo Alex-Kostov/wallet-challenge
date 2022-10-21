@@ -3,7 +3,7 @@ import { Response } from '../interfaces/reusable-interfaces';
 import { checkForValidSession } from '../models/auth-model';
 import { listUserPermissions } from '../models/permissions-model';
 import { getPostData } from '../utils';
-import { deposit, getBalance, withdraw } from '../models/wallet-operations-model';
+import { deposit, getBalance, withdraw, newTransaction } from '../models/wallet-operations-model';
 
 
 /**
@@ -38,6 +38,11 @@ export const depositController = async (req: IncomingMessage, res: ServerRespons
 				if (depositedAmount !== 0) {
 					// Deposit the money
 					await deposit(userID, depositedAmount);
+
+					// Create new transaction
+					await newTransaction(userID, depositedAmount, 'deposit');
+
+					// Return new balance as response.
 					const newBalance = await getBalance(userID);
 					depositResponse.msg = 'Deposit successful. New balance is ' + newBalance;
 					res.writeHead(200, { "Content-Type": "application/json" });
@@ -93,6 +98,11 @@ export const withdrawController = async (req: IncomingMessage, res: ServerRespon
 				if (withdrawAmount !== 0) {
 					// Withdraw the money
 					await withdraw(userID, withdrawAmount);
+
+					// Create new transaction
+					await newTransaction(userID, withdrawAmount, 'withdraw');
+
+					// Return new balance as response.
 					const newBalance = await getBalance(userID);
 					withdrawResponse.msg = 'Withdraw successful. New balance is ' + newBalance;
 					res.writeHead(200, { "Content-Type": "application/json" });

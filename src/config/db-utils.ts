@@ -43,8 +43,10 @@ export function createTables(db: Connection): void {
 	);
 	CREATE TABLE IF NOT EXISTS transactions(
 		id INT AUTO_INCREMENT,
+		user_id INT,
 		type VARCHAR(255),
 		amount DECIMAL(15,2),
+		time_created VARCHAR(255),
 		PRIMARY KEY (id)
 	);
 	CREATE TABLE IF NOT EXISTS sessions(
