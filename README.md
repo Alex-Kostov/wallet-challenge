@@ -1,5 +1,9 @@
 
-# Wallet Challange
+# Wallet Challenge
+
+# About
+Wallet Challenge is a small REST API project containing basic CRUD operations.
+The project is made using TypeScript and Vanilla Node.js
 
 # Environment vars
 This project uses the following environment variables:
@@ -38,9 +42,9 @@ npm install
 npm run build
 npm run start
 ```
-*npm run build* - This command will compile the TypeScript files by running tsc
+- *npm run build* - This command will compile the TypeScript files by running tsc
 
-*npm run start* - This command will first create new wallet_challange database, will create all the needed tables and will add 2 user roles (Admin and Customer).
+- *npm run start* - This command will first create new wallet_challange database, will create all the needed tables and will add 2 user roles (Admin and Customer).
 
 -  Navigate to `http://localhost:3000/`
 
@@ -56,7 +60,6 @@ npm run start
 |  /wallet/list/{x}   |  GET           | Fetches the last X or all transactions made by the current user, Currently only the admin has access to this endpoint.   |  - |
 |  /wallet/deposit/   |  POST           | Deposits money into the balance of the currently logged in user, must have correct permissions. Currently only the admin can deposit moeny   |  {"amount":  100} |
 |  /wallet/withdraw/   |  POST           | Withdraws money from the account of the currently logged in user, must have correct permissions and enought funds. Currently only the admin can deposit moeny   |  {"amount":  50} |
-
 
 # Common Issues
 
