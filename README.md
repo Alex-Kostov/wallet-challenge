@@ -20,7 +20,7 @@ This project uses the following environment variables:
 
 # Pre-requisites
 - Install [Node.js](https://nodejs.org/en/)
-- Install [TypeScript](https://www.typescriptlang.org/download) 
+- Install [TypeScript](https://www.typescriptlang.org/download) You will need to be able to use "tsc" command, so you will need to instal TS globally.
 - Install [MySQL](https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/windows-install-archive.html)
 
 
@@ -33,13 +33,14 @@ git clone git@github.com:Alex-Kostov/wallet-challenge.git
 ```
 cd wallet-challenge
 npm install
+npm install -g typescript # if you don't have it.
 ```
 - Create new .env file and add environment variables which are listed on top of this documentation.
 - If using Linux make sure the directory has all needed permissions in order for typescript to create new folders and files, if you need help you can check this [link](https://askubuntu.com/questions/719996/how-can-i-give-full-permission-to-folder-and-subfolder/#answer-934702)
 
 - Build and run the project
 ```
-npm run build
+npm run build # Should create /dist folder if not check permissions
 npm run start
 ```
 - *npm run build* - This command will compile the TypeScript files by running tsc
